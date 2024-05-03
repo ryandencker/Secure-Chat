@@ -4,6 +4,7 @@ import random
 
 
 def place_online(username):
+    #needs work
     f = open("online.txt", "a")
     f.write(f"{username} ")
 
@@ -18,10 +19,12 @@ def create():
     #generate random 5 digit user ID
     user_id = random.randint(10000, 99999)
     
-
+    #open and write username password and user id to db.txt
     f = open("db.txt", "a")
     f.write(f"{username} {hashedPassword.decode('utf-8')} {user_id}\n")
     f.close
+
+    #print message
     print("\nAccount has been created!")
     print("Your User ID is: ", user_id)
 
