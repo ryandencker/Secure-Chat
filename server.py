@@ -108,7 +108,7 @@ def server_handler (client_socket):
         #print what command client sent
         print ("client send " + str(client_command.decode()) + ".")
 
-        response = accout_option(client_command, client_socket)
+        accout_option(client_command, client_socket)
 
 
 def start_server(port):
