@@ -116,4 +116,14 @@ def login(connection_socket):
     return
 
 def place_online(username):
-    print(username, " is online")
+# Open the file
+    print("you are in place online")
+
+    f = open("db.txt", "r")
+    for line in f:
+        stored_username, stored_password, user_id = line.strip().split(" ")
+        if username == stored_username:
+            l = open("online.txt", "a")
+            l.write(f"{username} {user_id}\n")
+            print("user added to online")
+            break
