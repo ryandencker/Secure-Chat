@@ -15,9 +15,8 @@ def accout_option(client_command, connection_socket):
         elif client_command == b'2':
             login(connection_socket)
         elif client_command == b'3':
-            disconnect_msg = "Disconnecting from server..."
-            connection_socket.send(disconnect_msg.encode())
-            connection_socket.close()
+            #this needs to be worked on
+            print("disconnect client")
             
         else:
             invalid = "Invalid choice. Please try again\n"
@@ -26,29 +25,23 @@ def accout_option(client_command, connection_socket):
         break
             
 
-'''
-def command_handler(client_command, connection_socket):
-    # Get the "arguments from the client and split them up"
-    temp_list = client_command.split()
-    command_arguments = []
-    
-    for i in temp_list:
-        command_arguments.append(i.decode())
-    
-    command = command_arguments[0]
 
-    # See what command the user inputted
-    if command == "get":
-        return handle_get_command(command_arguments)
-    elif command == "put":
-        return handle_put_command(command_arguments, connection_socket)
-    elif command == "ls":
-        return handle_ls_command()
-    elif command == "quit":
-        return "quit"
-    else:
-        return "Invalid command. Please enter a valid command."
-        '''
+def command_handler(connection_socket):
+    # Get the "arguments from the client and split them up"
+
+    connection_socket.send(("What would you like to do? \nPress 1 to see who is online\nPress 2 to connect to someone online\nPress 3 to disconnect").encode())
+    client_command = connection_socket.recv(1024)
+    print("here is what is being passes to command handler")
+    print(client_command)
+    print(connection_socket)
+
+    if client_command == b'1':
+        show_online(connection_socket)
+    elif client_command == b'2':
+        connect_client(connection_socket)
+    elif client_command == b'3':
+        #this needs to be worked on
+        print("disconnect client")
     
 def create_account(connection_socket):
 
@@ -102,22 +95,27 @@ def login(connection_socket):
     password = connection_socket.recv(1024).decode()
     print(password)
 
+    user_found = False
     f = open("db.txt", "r")
     for line in f:
         stored_username, stored_password, user_id = line.strip().split(" ")
         if username == stored_username:
             if bcrypt.checkpw(password.encode('utf-8'), stored_password.encode('utf-8')):
                 f.close()
-                connection_socket.send(("Welcome " + username + "!").encode())
+                user_found = True
+                #connection_socket.send(("Welcome " + username + "!").encode())
                 place_online(username)
-                exit()
+                break
     f.close()
-    print("Your username or password is wrong. Try again")
-    return
+    if(not user_found):
+        connection_socket.send(("Your username or password is wrong. Try again\n").encode())
+
+    print("meow")
+    #connection_socket.send(("meow").encode())
+        
 
 def place_online(username):
 # Open the file
-    print("you are in place online")
 
     f = open("db.txt", "r")
     for line in f:
@@ -127,3 +125,13 @@ def place_online(username):
             l.write(f"{username} {user_id}\n")
             print("user added to online")
             break
+
+def show_online(connection_socket):
+    
+    f = open("online.txt", "r")
+    file_contents = f.read()
+    connection_socket.sendall(file_contents.encode())
+    
+def client_connect(connection_socket):
+    #still needs to be done
+    print()

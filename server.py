@@ -85,6 +85,7 @@ import socket
 import os
 import sys
 from server_commands import accout_option
+from server_commands import command_handler
 
 def server_handler (client_socket):
     welcome_msg = "You have successfully connected to Secure Chat!\n"
@@ -109,6 +110,9 @@ def server_handler (client_socket):
         print ("client send " + str(client_command.decode()) + ".")
 
         accout_option(client_command, client_socket)
+        command_handler(client_socket)
+
+              #connection_socket.send(("Welcome " + username + "!").encode())
 
 
 def start_server(port):
