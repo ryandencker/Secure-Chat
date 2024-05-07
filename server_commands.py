@@ -132,6 +132,9 @@ def show_online(connection_socket):
     file_contents = f.read()
     connection_socket.sendall(file_contents.encode())
     
-def client_connect(connection_socket):
+def connect_client(connection_socket):
     #still needs to be done
-    print()
+    connection_socket.send(("Please enter the user ID of the person you would like to connect to").encode())
+    user_id = connection_socket.recv(1024).decode()
+    print("user would like to connect to ", user_id)
+    connection_socket.send(("wow you are so awesome!!\n").encode())
