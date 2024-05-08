@@ -88,12 +88,12 @@ from server_commands import accout_option
 from server_commands import command_handler
 
 def server_handler (client_socket):
-    welcome_msg = "You have successfully connected to Secure Chat!\n"
+    welcome_msg = "----You have successfully connected to Secure Chat!----\n\n"
     client_socket.send(welcome_msg.encode())
 
     while(True):
 
-        options_msg = "Press 1 to create an account, 2 to log into an existing account, or 3 to quit: "
+        options_msg = "Press 1 to create an account, 2 to log into an existing account, or 3 to quit: \n"
         client_socket.send(options_msg.encode())
 
         #get user command
@@ -124,7 +124,7 @@ def start_server(port):
     server_socket.bind((server_ip, port))
 
     #start a listening for incoming connections (we can have # connection in queue before reject new connections
-    server_socket.listen(1)
+    server_socket.listen(2)
 
     while(True):
         print ("Waiting for clients to connect...")

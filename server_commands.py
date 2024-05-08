@@ -14,34 +14,39 @@ def accout_option(client_command, connection_socket):
             create_account(connection_socket)
         elif client_command == b'2':
             login(connection_socket)
+            break
         elif client_command == b'3':
             #this needs to be worked on
             print("disconnect client")
-            
         else:
             invalid = "Invalid choice. Please try again\n"
             connection_socket.send(invalid.encode())
             
-        break
+        options_msg = "Press 1 to create an account, 2 to log into an existing account, or 3 to quit:\n "
+        connection_socket.send(options_msg.encode())
+
+        #get user command
+        client_command = connection_socket.recv(1024)
             
 
 
 def command_handler(connection_socket):
     # Get the "arguments from the client and split them up"
 
-    connection_socket.send(("What would you like to do? \nPress 1 to see who is online\nPress 2 to connect to someone online\nPress 3 to disconnect").encode())
-    client_command = connection_socket.recv(1024)
-    print("here is what is being passes to command handler")
-    print(client_command)
-    print(connection_socket)
+    while (True):
+        connection_socket.send(("\nWelcome User!\n\nWhat would you like to do? \n\nPress 1 to see who is online\nPress 2 to connect to someone online\nPress 3 to disconnect").encode())
+        client_command = connection_socket.recv(1024)
+        print("here is what is being passes to command handler")
+        print(client_command)
+        print(connection_socket)
 
-    if client_command == b'1':
-        show_online(connection_socket)
-    elif client_command == b'2':
-        connect_client(connection_socket)
-    elif client_command == b'3':
-        #this needs to be worked on
-        print("disconnect client")
+        if client_command == b'1':
+            show_online(connection_socket)
+        elif client_command == b'2':
+            connect_client(connection_socket)
+        elif client_command == b'3':
+            #this needs to be worked on
+            print("disconnect client")
     
 def create_account(connection_socket):
 
@@ -85,33 +90,34 @@ def create_account(connection_socket):
 
 def login(connection_socket):
 
-    #get username and password
-    username_msg = "Please enter your username: "
-    connection_socket.send(username_msg.encode())
-    username = connection_socket.recv(1024).decode()
-    print(username)
-    password_msg = "Please enter your password: "
-    connection_socket.send(password_msg.encode())
-    password = connection_socket.recv(1024).decode()
-    print(password)
+    while (True):
+        #get username and password
+        username_msg = "Please enter your username: "
+        connection_socket.send(username_msg.encode())
+        username = connection_socket.recv(1024).decode()
+        print(username)
+        password_msg = "Please enter your password: "
+        connection_socket.send(password_msg.encode())
+        password = connection_socket.recv(1024).decode()
+        print(password)
 
-    user_found = False
-    f = open("db.txt", "r")
-    for line in f:
-        stored_username, stored_password, user_id = line.strip().split(" ")
-        if username == stored_username:
-            if bcrypt.checkpw(password.encode('utf-8'), stored_password.encode('utf-8')):
-                f.close()
-                user_found = True
-                #connection_socket.send(("Welcome " + username + "!").encode())
-                place_online(username)
-                break
-    f.close()
-    if(not user_found):
-        connection_socket.send(("Your username or password is wrong. Try again\n").encode())
+        user_found = False
+        f = open("db.txt", "r")
+        for line in f:
+            stored_username, stored_password, user_id = line.strip().split(" ")
+            if username == stored_username:
+                if bcrypt.checkpw(password.encode('utf-8'), stored_password.encode('utf-8')):
+                    f.close()
+                    user_found = True
+                    #connection_socket.send(("Welcome " + username + "!").encode())
+                    place_online(username)
+                    return
+        f.close()
+        if(not user_found):
+            connection_socket.send(("Your username or password is wrong. Try again\n").encode())
 
-    print("meow")
-    #connection_socket.send(("meow").encode())
+        print("meow")
+        #connection_socket.send(("meow").encode())
         
 
 def place_online(username):
@@ -127,14 +133,14 @@ def place_online(username):
             break
 
 def show_online(connection_socket):
-    
+    #shows the client who is online (online.txt)
     f = open("online.txt", "r")
     file_contents = f.read()
     connection_socket.sendall(file_contents.encode())
     
 def connect_client(connection_socket):
-    #still needs to be done
+    #still needs to be done, connects client to another client
     connection_socket.send(("Please enter the user ID of the person you would like to connect to").encode())
     user_id = connection_socket.recv(1024).decode()
     print("user would like to connect to ", user_id)
-    connection_socket.send(("wow you are so awesome!!\n").encode())
+    connection_socket.send(("wow you are so awesome!!\nThis still needs to be worked on\n\n").encode())
