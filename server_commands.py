@@ -50,6 +50,7 @@ def command_handler(connection_socket):
 
     while (True):
         connection_socket.send(("\nWelcome User!\n\nWhat would you like to do? \n\nPress 1 to see who is online\nPress 2 to connect to someone online\nPress 3 to disconnect\n").encode())
+
         client_command = connection_socket.recv(1024)
         print("here is what is being passes to command handler")
         print(client_command)
@@ -166,12 +167,46 @@ def show_online(connection_socket):
     file_contents = f.read()
     connection_socket.sendall(file_contents.encode())
     
+
 def connect_client(connection_socket):
-    #still needs to be done, connects client to another client
-    connection_socket.send(("Please enter the user ID of the person you would like to connect to").encode())
-    user_id = connection_socket.recv(1024).decode()
-    print("user would like to connect to ", user_id)
-    connection_socket.send(("wow you are so awesome!!\nThis still needs to be worked on\n\n").encode())
+  # Get the user ID to connect to from the client
+  connection_socket.send(("Please enter the user ID of the person you would like to connect to").encode())
+  requested_user_id = connection_socket.recv(1024).decode().strip()  # Remove leading/trailing whitespaces
+  print("user would like to connect to ", requested_user_id)
+
+  # Find the username of the requested user (if they are online)
+  requested_username = None
+  with open("online.txt", "r") as online_file:
+      for line in online_file:
+          username, user_id = line.strip().split()
+          if user_id == requested_user_id:
+              requested_username = username
+              break
+
+  # Find the socket of the requested user (if they are online)
+  requested_user_socket = None
+  for user_socket, username in online_users.items():
+      if username == requested_username:
+          requested_user_socket = user_socket
+          break
+
+  # Check if the requested user is online
+  if requested_user_socket:
+      # Send a message to both clients indicating successful connection
+      connection_socket.send("Connected to user successfully!\n".encode())
+      requested_user_socket.send(("Client " + online_users[connection_socket] + " has connected!\n").encode())
+
+      while True:
+          # Receive message from the current client (connection_socket)
+          client_message = connection_socket.recv(1024).decode()
+          # Placeholder - Encrypt the message using the recipient's public key
+          encrypted_message = encrypt_message(client_message, requested_user_socket.public_key)
+          # Placeholder - Forward the encrypted message to the other client's socket
+          requested_user_socket.send(encrypted_message)
+          else:
+            connection_socket.send(("The user with ID " + requested_user_id + " is not online.\n").encode())
+
+
 
 def remove_from_online(connection_socket):
     username = online_users.pop(connection_socket, None)
