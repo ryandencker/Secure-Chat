@@ -49,8 +49,7 @@ def command_handler(connection_socket):
     # Get the "arguments from the client and split them up"
 
     while (True):
-        connection_socket.send(("\nWelcome User!\n\nWhat would you like to do? \n\nPress 1 to see who is 
-online\nPress 2 to connect to someone online\nPress 3 to disconnect").encode())
+        connection_socket.send(("\nWelcome User!\n\nWhat would you like to do? \n\nPress 1 to see who is online\nPress 2 to connect to someone online\nPress 3 to disconnect\n").encode())
         client_command = connection_socket.recv(1024)
         print("here is what is being passes to command handler")
         print(client_command)
