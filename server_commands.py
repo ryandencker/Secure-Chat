@@ -183,4 +183,3 @@ def remove_from_online(connection_socket):
                 if not line.startswith(username):
                     f.write(line)
         print(f"{username} has been removed from online list.")
-
