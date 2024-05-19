@@ -1,44 +1,71 @@
 import socket
 import threading
 import random
+import sys
 from Cryptodome.PublicKey import RSA
 from Cryptodome.Cipher import PKCS1_OAEP
 from Cryptodome.Util.Padding import unpad
+from Cryptodome.Cipher import AES
 
 class Client:
     def __init__(self):
         #symm key is accessible to all functions in client class
-        self.dec_symm_key = None
+        self.symm_key = None
     def receive_messages(self,client_socket,priv_file_name):
         # receive symmetric key
         
         while True:
             try:
                 # receive encrypted symmetric key
-                # occasional ciphertext length error, not sure how to fix
-                message = client_socket.recv(4096)
-                # print(message, '\n')
-                if message:
+                key_length_msg = client_socket.recv(5)
+                key_length = int.from_bytes(key_length_msg, byteorder='big')
+                # message = client_socket.recv(4096)
+                #print(key_length)
+                encrypted_key = b''
+                bytes_received = 0
+                data = None
+                #data varaible is to store and make sure all bytes of key are received
+                while bytes_received < key_length:
+                    data = client_socket.recv(key_length - bytes_received)
+                    if not data:
+                        raise Exception("Connection closed unexpectedly while receiving encrypted key")
+                    encrypted_key += data
+                    bytes_received += len(data)
+                
+               # print(data, '\n')
+                if data:
                     private_key = RSA.import_key(open(priv_file_name).read())
 
                     dec_cipher_rsa = PKCS1_OAEP.new(private_key)
                     # print("Dec cipher rsa:", dec_cipher_rsa, '\n')
-                    self.dec_symm_key = dec_cipher_rsa.decrypt(message)
+                    self.symm_key = dec_cipher_rsa.decrypt(data)
                     # write to file so client can access it whenever they need
-                    f = open("symm_key.txt", "a")
-                    # print("Decrypted message:", dec_symm_key, '\n')
-                    # print(f"Decrypted symmetric key: {self.dec_symm_key}")
+                    # f = open("symm_key.txt", "a")
+                    # print("Decrypted message:", symm_key, '\n')
+                    # print(f"Decrypted symmetric key: {self.symm_key}")
                     break
             except Exception as e:
-                 print(f"An error occurred while receiving the symmetric key: {e}")
+                 print(f"An error w/the symmetric key, press 3 to quit and try again: {e}")
+                 client_socket.close()
+                 sys.exit(1)
                  break
         # wait for messages/chat
         while True:
             try:
-                message = client_socket.recv(1024).decode()
-                
+                message = client_socket.recv(1024)#.decode()
+               
                 if message:
-                    print("\n" + message)  # Print the incoming message
+                    #decrypt/verify digsig then decrypt with aes_dec_cipher
+                    AES_dec_cipher = AES.new(self.symm_key, AES.MODE_ECB)
+                    AES_dec_msg = AES_dec_cipher.decrypt(message)
+                    unpadded_msg = unpad(AES_dec_msg, 16)
+                    #dsa or rsa decryption or whatever here
+                    #dsa_rsa_dec =
+                    #decrypt output from dsa/rsa w/symm key and output the message
+                    # 
+                    # print("\n" + message)  # Print the incoming message
+                    # print("Secure-Chat> ", end='', flush=True)  # Reprint the prompt
+                    print("\n" + unpadded_msg.decode())  # Print the incoming message
                     print("Secure-Chat> ", end='', flush=True)  # Reprint the prompt
                 else:
                     break
