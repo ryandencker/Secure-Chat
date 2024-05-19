@@ -16,7 +16,7 @@ class Client:
             try:
                 # receive encrypted symmetric key
                 # occasional ciphertext length error, not sure how to fix
-                message = client_socket.recv(8192)
+                message = client_socket.recv(4096)
                 # print(message, '\n')
                 if message:
                     private_key = RSA.import_key(open(priv_file_name).read())
