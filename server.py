@@ -2,9 +2,20 @@ import socket
 import threading
 import bcrypt
 import random
+from Cryptodome.Signature import DSS
+from Cryptodome.PublicKey import DSA
+from Cryptodome.PublicKey import RSA
+# from Cryptodome.Hash import SHA256
+from Cryptodome.Random import get_random_bytes
+from Cryptodome.Cipher import PKCS1_OAEP
+from Cryptodome.Util.Padding import pad
 
 online_users = {}
 clients = []  # List to keep track of connected clients
+
+#generate server symm key
+symm_key = get_random_bytes(16)
+print(symm_key, "\n")
 
 def broadcast(message, current_client):
     for client in clients:
@@ -18,7 +29,30 @@ def broadcast(message, current_client):
 
 def handle_client(client_socket, addr):
     try:
-        accout_option(client_socket)
+        
+        #append socket associated w/client pub key to same line as assocaited rand num
+        with open("pubkey_file_number.txt", "a") as f:
+            f.write(f"sock:{client_socket}\n")
+        print('actually here')
+        
+        #encrypt server symm key w/client pub key
+        with open("pubkey_file_number.txt", "r") as f:
+           for line in f:
+               filenumber, sock = line.strip().split(" sock:")
+               print(filenumber, sock)
+               if sock == str(client_socket):
+                    pub_file = filenumber + "public_key.pem"
+                    pubkey = RSA.import_key(open(pub_file).read())
+                        
+                   # encrypt symm key with the public key
+                    print("in hereee")
+                    cipher_rsa = PKCS1_OAEP.new(pubkey)
+                    enc_symm_key = cipher_rsa.encrypt(symm_key)
+                    print("enc key:", enc_symm_key)
+                    client_socket.send(enc_symm_key)
+                    accout_option(client_socket)
+                    break
+        print('here')
         command_handler(client_socket)
     except Exception as e:
         print(f"An error occurred with {addr}: {e}")
@@ -28,7 +62,7 @@ def handle_client(client_socket, addr):
             clients.remove(client_socket)
         client_socket.close()
 
-def accout_option(connection_socket):
+def accout_option(connection_socket):#,public_key):
     while True:
         options_msg = "Press 1 to create an account, 2 to log into an existing account, or 3 to quit:\n"
         connection_socket.send(options_msg.encode())
@@ -39,7 +73,7 @@ def accout_option(connection_socket):
         if client_command == b'1':
             create_account(connection_socket)
         elif client_command == b'2':
-            login(connection_socket)
+            login(connection_socket)#,public_key)
             break
         elif client_command == b'3':
             connection_socket.send("Disconnecting...\n".encode())
@@ -85,7 +119,7 @@ def create_account(connection_socket):
     created_msg = "Account has been created!\n"
     connection_socket.send(created_msg.encode())
 
-def login(connection_socket):
+def login(connection_socket):#,public_key):
     while True:
         username_msg = "Please enter your username: "
         connection_socket.send(username_msg.encode())
@@ -149,10 +183,12 @@ def start_server(port):
 
     while True:
         client_socket, addr = server_socket.accept()
+        print(client_socket, addr)
+
         print(f"Client connected from: {addr}")
         client_thread = threading.Thread(target=handle_client, args=(client_socket, addr))
         client_thread.start()
 
 if __name__ == "__main__":
     port = 12345
-    start_server(port)
+    start_server(port)# import socket
