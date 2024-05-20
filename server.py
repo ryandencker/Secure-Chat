@@ -195,28 +195,40 @@ def send_message_rsa(message, client_socket):
 def send_message_dsa(message, client_socket):
     try:
         print("Inside send_message_dsa")
+
         # Generate DSA key pair
         key = DSA.generate(2048)
         pub_key = key.publickey().export_key(format='PEM')
         priv_key = key.export_key(format='PEM')
 
-        # Write the public key to the file
+        # Print the DSA keys
+        print(f"DSA Public Key:\n{pub_key.decode('utf-8')}")
+        print(f"DSA Private Key:\n{priv_key.decode('utf-8')}")
+
+        # Write the public key to a file for record-keeping
         with open("dsa_public_keys.txt", "a") as f:
             f.write(f"{client_socket.getpeername()}  {pub_key.decode('utf-8')}\n")
         print("Public key written to file.")
 
         # Sign the message
-        h = SHA256.new(message)  # Ensure message is already in bytes
-        signer = DSS.new(key, 'fips-186-3')
-        signature = signer.sign(h)
+        h = SHA256.new(message)  # Create a SHA-256 hash of the message
+        signer = DSS.new(key, 'fips-186-3')  # Create a signer object using the DSA key
+        signature = signer.sign(h)  # Sign the hash with the DSA key
+
+        # Print the signature
+        print(f"Signature: {signature.hex()}")
+
         print("Message signed.")
 
-        # Send the public key, message, and signature
-        dsa_message = b"DSA: " + message
+        # Combine public key, signature, and message into one package
+        dsa_message = b"DSA: " + message  # Prefix message with "DSA: "
         combined_message = pub_key + b"\n" + signature + b"\n" + dsa_message
+
+        # Send the combined message to the client
         client_socket.sendall(combined_message)
         print("Message sent.")
         print(f"Sending message with DSA: {message.decode()}")
+
     except Exception as e:
         print(f"An error occurred while sending the message with DSA: {e}")
 
