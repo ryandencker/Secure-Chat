@@ -206,17 +206,17 @@ def send_message_dsa(message, client_socket):
         print("Public key written to file.")
 
         # Sign the message
-        h = SHA256.new(message.encode('utf-8'))  # Ensure message is encoded to bytes
+        h = SHA256.new(message)  # Ensure message is already in bytes
         signer = DSS.new(key, 'fips-186-3')
         signature = signer.sign(h)
         print("Message signed.")
 
         # Send the public key, message, and signature
-        dsa_message = f"DSA: {message}".encode('utf-8')
+        dsa_message = b"DSA: " + message
         combined_message = pub_key + b"\n" + signature + b"\n" + dsa_message
         client_socket.sendall(combined_message)
         print("Message sent.")
-        print(f"Sending message with DSA: {message}")
+        print(f"Sending message with DSA: {message.decode()}")
     except Exception as e:
         print(f"An error occurred while sending the message with DSA: {e}")
 
