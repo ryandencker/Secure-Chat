@@ -10,7 +10,7 @@ Hart Zhang
 Contributions
 Ryan Dencker - set up initial server and client connectivity, set up the database and online files, and made users able to sign up and log in
 
-Brody Whelan
+Brody Whelan - Implemented symmetric cryptography for encrypting messages and RSA for distributing symmetric keys.  
 
 Brandon Nguyen - set up the DSA function to generate a DSA key pair, sign the message using the private key, combine the public key, signature, and message, and then send it to the client. Added an option to choose between sending by DSA or RSA
 
