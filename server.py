@@ -15,7 +15,8 @@ from Cryptodome.Cipher import AES
 
 online_users = {}
 clients = []  # List to keep track of connected clients
-
+with open('online.txt', 'w') as f:
+    f.truncate()
 #generate server symm key
 symm_key = get_random_bytes(16)
 # print(symm_key, "\n")
