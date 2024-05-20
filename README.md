@@ -13,7 +13,7 @@ Brody Whelan
 Brandon Nguyen
 Ricky Truckner
 Edgardo Arteaga
-Hart Zhang
+Hart Zhang  - ensure server and client communication create a socket, build remove_from_online broadcast generate_unique_user_id start_server, improved command_handler and accout_handler to able send messages and esbtablish a strong connections allow mutiple users to join
 
 Instructions
 1. Run the server.py and specify the port number you want the server to run on
