@@ -192,7 +192,7 @@ def send_message_rsa(message, client_socket):
         print(f"An error occurred while sending the message with RSA: {e}")
 
 
-def send_message_dsa(client_socket, message):
+def send_message_dsa(message, client_socket):
     try:
         print("Inside send_message_dsa")
         # Generate DSA key pair
@@ -212,8 +212,8 @@ def send_message_dsa(client_socket, message):
         print("Message signed.")
 
         # Send the public key, message, and signature
-        dsa_message = f"DSA: {message}"
-        combined_message = pub_key + b"\n" + signature + b"\n" + dsa_message.encode('utf-8')
+        dsa_message = f"DSA: {message}".encode('utf-8')
+        combined_message = pub_key + b"\n" + signature + b"\n" + dsa_message
         client_socket.sendall(combined_message)
         print("Message sent.")
         print(f"Sending message with DSA: {message}")
