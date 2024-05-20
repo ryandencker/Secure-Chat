@@ -16,7 +16,7 @@ Brandon Nguyen - set up the DSA function to generate a DSA key pair, sign the me
 
 Ricky Truckner - Enabled secure communication by implementing RSA for key exchange. This establishes a secure channel for distributing symmetric keys to both client and server, ensuring message encryption.
 
-Edgardo Arteaga
+Edgardo Arteaga - helped with general cryptography encryption and decryption and digital signature setups, debugging.
 
 Hart Zhang  - ensure server and client communication create a socket, build remove_from_online broadcast generate_unique_user_id start_server, improved command_handler and accout_handler to able send messages and esbtablish a strong connections allow mutiple users to join
 
