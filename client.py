@@ -5,6 +5,7 @@ import sys
 from Cryptodome.PublicKey import RSA
 from Cryptodome.Cipher import PKCS1_OAEP
 from Cryptodome.Util.Padding import unpad
+from Cryptodome.Util.Padding import pad
 from Cryptodome.Cipher import AES
 
 class Client:
@@ -77,8 +78,11 @@ class Client:
         while True:
             try:
                 user_input = input("Secure-Chat> ")
+                
+                AES_enc_input = self.gen_AES_enc(user_input.encode())
+                
                 if user_input:
-                    client_socket.send(user_input.encode())
+                    client_socket.send(AES_enc_input)
                     if user_input == "3":  # Disconnect command
                         break
             except Exception as e:
@@ -128,6 +132,11 @@ class Client:
         # Handle sending messages in the main thread
         self.send_messages(client_socket)
 
+    def gen_AES_enc(self, message):
+        padded_msg = pad(message, 16)
+        AES_enc_cipher = AES.new(self.symm_key, AES.MODE_ECB)   
+        AES_msg = AES_enc_cipher.encrypt(padded_msg)
+        return AES_msg
 if __name__ == "__main__":
     client = Client()
     server_name = "127.0.0.1"
