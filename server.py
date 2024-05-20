@@ -11,7 +11,8 @@ from Cryptodome.Cipher import PKCS1_OAEP
 from Cryptodome.Util.Padding import pad
 from Cryptodome.Util.Padding import unpad
 from Cryptodome.Cipher import AES
-
+from Cryptodome.Signature import DSS
+from Cryptodome.Hash import SHA256
 
 online_users = {}
 clients = []  # List to keep track of connected clients
@@ -22,10 +23,10 @@ symm_key = get_random_bytes(16)
 # print(symm_key, "\n")
 
 def broadcast(message, current_client):
-    padded_msg = pad(message, 16)
-    # print(padded_msg)
-    AES_enc_cipher = AES.new(symm_key, AES.MODE_ECB)   
-    AES_msg = AES_enc_cipher.encrypt(padded_msg)
+    # padded_msg = pad(message, 16)
+    # # print(padded_msg)
+    # AES_enc_cipher = AES.new(symm_key, AES.MODE_ECB)   
+    # AES_msg = AES_enc_cipher.encrypt(padded_msg)
     #implemet dig sig for rsa or dsa
     for client in clients:
         if client != current_client:
@@ -118,7 +119,32 @@ def command_handler(connection_socket):
         if AES_dec_command == b'1':
             show_online(connection_socket)
         elif AES_dec_command == b'2':
-            
+            print("Client selected to send a message.")
+            rsa_or_dsa = "Send by RSA or DSA? (Enter 'rsa' or 'dsa'): "
+            rsa_or_dsa_enc = gen_AES_enc(rsa_or_dsa.encode())
+            connection_socket.send(rsa_or_dsa_enc)
+            encryption_type = connection_socket.recv(1024)
+            enc_type_dec = gen_AES_dec(encryption_type).lower()
+            print(f"Client selected encryption type: {enc_type_dec}")
+
+            if enc_type_dec not in ['rsa', 'dsa']:
+                invalid_msg = "Invalid encryption type. Please enter 'rsa' or 'dsa'.\n"
+                enc_msg =  gen_AES_enc(invalid_msg)
+                connection_socket.send(enc_msg)
+                continue
+            msg = "Enter your message: "
+            aes_msg = gen_AES_enc(msg.encode())
+            connection_socket.send(aes_msg)
+            message = connection_socket.recv(1024)
+            # dec_message = gen_AES_dec(message)
+            print(f"Client entered message: {message}")
+
+            if encryption_type == 'rsa':
+                print("Calling send_message_rsa")
+                send_message_rsa(message, connection_socket)
+            elif encryption_type == 'dsa':
+                print("Calling send_message_dsa")
+                send_message_dsa(message, connection_socket)
             send_msg = "Enter your message"
             enc_send_msg = gen_AES_enc(send_msg.encode())
             connection_socket.send(enc_send_msg)
@@ -253,6 +279,63 @@ def start_server(port):
         client_thread = threading.Thread(target=handle_client, args=(client_socket, addr))
         client_thread.start()
 
+def send_message_rsa(message, client_socket):
+    try:
+        keys = RSA.generate(2048)
+        pub_key = keys.publickey().export_key()
+        priv_key = keys.export_key()
+
+        # Write the public key to the file
+        with open("rsa_public_keys.txt", "a") as f:
+            f.write(f"{client_socket.getpeername()}  {pub_key}\n")
+
+        # Here you would typically encrypt the message with the public key
+        # For demonstration, we're just sending the message prefixed with "RSA: "
+        print(f"Sending message with RSA: {message}")
+        enc_msg = gen_AES_enc(message.encode())
+        client_socket.send(f"RSA: {message}".encode())
+    except Exception as e:
+        print(f"An error occurred while sending the message with RSA: {e}")
+
+def send_message_dsa(message, client_socket):
+    try:
+        print("Inside send_message_dsa")
+
+        # Generate DSA key pair
+        key = DSA.generate(2048)
+        pub_key = key.publickey().export_key(format='PEM')
+        priv_key = key.export_key(format='PEM')
+
+        # Print the DSA keys
+        print(f"DSA Public Key:\n{pub_key.decode('utf-8')}")
+        print(f"DSA Private Key:\n{priv_key.decode('utf-8')}")
+
+        # Write the public key to a file for record-keeping
+        with open("dsa_public_keys.txt", "a") as f:
+            f.write(f"{client_socket.getpeername()}  {pub_key.decode('utf-8')}\n")
+        print("Public key written to file.")
+
+        # Sign the message
+        h = SHA256.new(message)  # Create a SHA-256 hash of the message
+        signer = DSS.new(key, 'fips-186-3')  # Create a signer object using the DSA key
+        signature = signer.sign(h)  # Sign the hash with the DSA key
+
+        # Print the signature
+        print(f"Signature: {signature.hex()}")
+
+        print("Message signed.")
+
+        # Combine public key, signature, and message into one package
+        dsa_message = b"DSA: " + message  # Prefix message with "DSA: "
+        combined_message = pub_key + b"\n" + signature + b"\n" + dsa_message
+
+        # Send the combined message to the client
+        client_socket.sendall(combined_message)
+        print("Message sent.")
+        print(f"Sending message with DSA: {message.decode()}")
+
+    except Exception as e:
+        print(f"An error occurred while sending the message with DSA: {e}")
 
 if __name__ == "__main__":
     port = 12345

@@ -38,12 +38,8 @@ class Client:
                     private_key = RSA.import_key(open(priv_file_name).read())
 
                     dec_cipher_rsa = PKCS1_OAEP.new(private_key)
-                    # print("Dec cipher rsa:", dec_cipher_rsa, '\n')
                     self.symm_key = dec_cipher_rsa.decrypt(data)
-                    # write to file so client can access it whenever they need
-                    # f = open("symm_key.txt", "a")
-                    # print("Decrypted message:", symm_key, '\n')
-                    # print(f"Decrypted symmetric key: {self.symm_key}")
+                   
                     break
             except Exception as e:
                  print(f"An error w/the symmetric key, press 3 to quit and try again: {e}")
